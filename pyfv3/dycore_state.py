@@ -480,6 +480,7 @@ class DycoreState:
                 dims = dim_names,
                 units = field.metadata["units"],
                 init_time=init_time,
+                dtype=Float,
             )
 
     def __getitem__(self, item: str) -> Any:
