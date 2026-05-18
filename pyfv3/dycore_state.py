@@ -17,6 +17,8 @@ from ndsl.constants import (
 from ndsl.dsl.typing import Float
 from ndsl.restart._legacy_restart import open_restart
 from ndsl.typing import Communicator
+from ndsl import DiagManagerMonitor
+import datetime
 
 
 @dataclass()
@@ -471,7 +473,7 @@ class DycoreState:
         """
         for _field in fields(cls):
             if "dims" in _field.metadata.keys():
-                dim_names = _field.metadata["dims"])
+                dim_names = _field.metadata["dims"]
             else:
                 dim_names = None # static field
             monitor.register_field(
