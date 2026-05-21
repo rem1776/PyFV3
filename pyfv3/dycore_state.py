@@ -465,24 +465,26 @@ class DycoreState:
                 )
         return xr.Dataset(data_vars=data_vars)
 
-    @classmethod
-    def register_diag_manager_fields(cls, quantity_factory: QuantityFactory, monitor: DiagManagerMonitor, init_time: datetime):
+    def register_diag_manager_fields(cls,
+        monitor: DiagManagerMonitor,
+        init_time: datetime,
+        field_names: list[str],
+    ):
         """
         Registers all fields from the state for use in the diag_manager from FMS.
         Axis/dims will need to be registered prior to this call.
         """
-        for _field in fields(cls):
-            if "dims" in _field.metadata.keys():
-                dim_names = _field.metadata["dims"]
-            else:
-                dim_names = None # static field
+        for _field_name in field_names:
+            _field = getattr(cls, _field_name)
+            dim_names = getattr(_field.metadata, "dims")
+            units = getattr(_field.metadata, "units")
             monitor.register_field(
                 module_name="pyfv3",
-                field_name=field.metadata["name"],
+                field_name=_field_name,
                 dims = dim_names,
-                units = field.metadata["units"],
+                units = units,
                 init_time=init_time,
-                dtype=Float,
+                dtype="float64",
             )
 
     def __getitem__(self, item: str) -> Any:
