@@ -15,6 +15,9 @@ from ndsl.constants import (
     K_INTERFACE_DIM,
 )
 from ndsl.dsl.typing import Float
+from ndsl.monitor.diag_field_registration import (
+    register_diag_manager_fields as register_diag_manager_fields_common,
+)
 from ndsl.restart._legacy_restart import open_restart
 from ndsl.typing import Communicator
 from ndsl import DiagManagerMonitor
@@ -465,6 +468,7 @@ class DycoreState:
                 )
         return xr.Dataset(data_vars=data_vars)
 
+    @classmethod
     def register_diag_manager_fields(cls,
         monitor: DiagManagerMonitor,
         init_time: datetime,
@@ -474,18 +478,23 @@ class DycoreState:
         Registers all fields from the state for use in the diag_manager from FMS.
         Axis/dims will need to be registered prior to this call.
         """
-        for _field_name in field_names:
-            _field = getattr(cls, _field_name)
-            dim_names = getattr(_field.metadata, "dims")
-            units = getattr(_field.metadata, "units")
+        for _field_name in list(field_names):
+            _field = cls.__dataclass_fields__.get(_field_name)
+            if _field is None:
+                continue
+
+            dim_names = _field.metadata.get("dims", "unknown")
+            units = _field.metadata.get("units", "unknown")
             monitor.register_field(
                 module_name="pyfv3",
                 field_name=_field_name,
-                dims = dim_names,
-                units = units,
+                long_name=_field.metadata["name"],
+                dims=dim_names,
+                units=units,
                 init_time=init_time,
                 dtype="float64",
             )
+            field_names.remove(_field_name)
 
     def __getitem__(self, item: str) -> Any:
         return getattr(self, item)
